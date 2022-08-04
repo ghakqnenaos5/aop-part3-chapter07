@@ -1,15 +1,18 @@
 package fastcampus.aop.part3.chapter07
 
+import android.content.Intent
 import android.graphics.Color
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
+import android.widget.TextView
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager2.widget.ViewPager2
 import com.naver.maps.geometry.LatLng
 import com.naver.maps.map.*
 import com.naver.maps.map.overlay.Marker
+import com.naver.maps.map.overlay.Overlay
 import com.naver.maps.map.util.FusedLocationSource
 import com.naver.maps.map.util.MarkerIcons
 import com.naver.maps.map.widget.LocationButtonView
@@ -19,7 +22,7 @@ import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
-class MainActivity : AppCompatActivity(), OnMapReadyCallback {
+class MainActivity : AppCompatActivity(), OnMapReadyCallback, Overlay.OnClickListener {
 
     // https://run.mocky.io/v3/1b04d77f-0b1d-47db-a9e9-ef789d8ad495
     private lateinit var naverMap: NaverMap
@@ -40,7 +43,19 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
         findViewById(R.id.currentLocationButton)
     }
 
-    private val viewPagerAdapter = HouseViewPagerAdapter()
+    private val bottomSheetTitleView: TextView by lazy {
+        findViewById(R.id.bottomSheetTitleTextView)
+    }
+
+    private val viewPagerAdapter = HouseViewPagerAdapter(itemClicked = {
+        val intent = Intent()
+            .apply {
+                action = Intent.ACTION_SEND
+                putExtra(Intent.EXTRA_TEXT, "[지금 이 가격에 예약하세요!!] ${it.title} ${it.price} 사진보기 : ${it.imgUrl}")
+                type = "text/plain"
+            }
+        startActivity(Intent.createChooser(intent, null))
+    })
     private val recyclerAdapter = HouseListAdapter()
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -53,6 +68,17 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
         viewpager.adapter = viewPagerAdapter
         recyclerView.adapter = recyclerAdapter
         recyclerView.layoutManager = LinearLayoutManager(this)
+
+        viewpager.registerOnPageChangeCallback(object: ViewPager2.OnPageChangeCallback() {
+            override fun onPageSelected(position: Int) {
+                super.onPageSelected(position)
+                val selectedHouseModel = viewPagerAdapter.currentList[position]
+                val cameraUpdate = CameraUpdate.scrollTo(LatLng(selectedHouseModel.lat, selectedHouseModel.lng))
+                    .animate(CameraAnimation.Easing)
+
+                naverMap.moveCamera(cameraUpdate)
+            }
+        })
     }
 
     override fun onMapReady(map: NaverMap) {
@@ -99,6 +125,8 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
                             updateMarker(dto.items)
                             viewPagerAdapter.submitList(dto.items)
                             recyclerAdapter.submitList(dto.items)
+
+                            bottomSheetTitleView.text = "${dto.items.size}개의 숙소"
                         }
                     }
 
@@ -114,6 +142,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
         houses.forEach { house ->
             val marker = Marker()
             marker.position = LatLng(house.lat, house.lng)
+            marker.onClickListener = this
             //todo 마커 클릭 리스너
             marker.map = naverMap
             marker.tag = house.id
@@ -177,5 +206,20 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
 
     companion object {
         private const val LOCATION_PERMISSION_REQUEST_CODE = 1000
+    }
+
+    override fun onClick(overlay: Overlay): Boolean {
+        overlay.tag
+
+        val selectedModel = viewPagerAdapter.currentList.firstOrNull {
+            it.id == overlay.tag
+        }
+
+        selectedModel?.let {
+            val position = viewPagerAdapter.currentList.indexOf(it)
+            viewpager.currentItem = position
+        }
+
+        return true
     }
 }
