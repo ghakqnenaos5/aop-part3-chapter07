@@ -1,0 +1,44 @@
+{
+  "items": [
+    {
+      "id": 1,
+      "title": "강남역!! 최저가!! 레지던스!!",
+      "price": "23,000원",
+      "imgUrl": "https://picsum.photos/200/200",
+      "lat": 37.5000,
+      "lag": 127.0260
+    },
+    {
+      "id": 2,
+      "title": "강남역, 위치 초 근접",
+      "price": "90,000원",
+      "imgUrl": "https://picsum.photos/200/200",
+      "lat": 37.5025,
+      "lag": 127.0275
+    },
+    {
+      "id": 3,
+      "title": "집 전체, 강남의 야경",
+      "price": "109,755원",
+      "imgUrl": "https://picsum.photos/200/200",
+      "lat": 37.5006,
+      "lag": 127.0248
+    },
+    {
+      "id": 4,
+      "title": "아파트 전체, 동대문 시장 특별한 추억",
+      "price": "92,443원",
+      "imgUrl": "https://picsum.photos/200/200",
+      "lat": 37.4982,
+      "lag": 127.024812
+    },
+    {
+      "id": 5,
+      "title": "집전체, Luxury Vintage Flat",
+      "price": "136,444원",
+      "imgUrl": "https://picsum.photos/200/200",
+      "lat": 37.4949,
+      "lag": 127.0262
+    }
+  ]
+}
